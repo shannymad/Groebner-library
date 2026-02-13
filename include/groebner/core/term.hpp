@@ -1,5 +1,6 @@
 #pragma once
 #include "coefficient/rational.hpp"
+#include "strong_typedef.hpp"
 #include "variable.hpp"
 #include <algorithm>
 #include <cassert>
@@ -11,29 +12,29 @@
 
 namespace groebner::core {
 
-using degree_type = std::uint32_t;
+struct DegreeTag;
+using Degree = groebner::core::StrongTypedef<DegreeTag, std::uint32_t>;
 
 // TODO: replace map with vector
-// std::vector<std::pair<Variable, degree_type>>
-
-// using variable_power = std::pair<Variable, degree_type>;
+// std::vector<std::pair<Variable, Degree>>
+// using variable_power = std::pair<Variable, Degree>;
 // using variable_vector = std::vector<variable_power>;
 
 template <typename Coeff = coefficient::Rational<>> class Term {
 public:
-  using variable_map = std::map<Variable, degree_type>;
+  using variable_map = std::map<Variable, Degree>;
   using variable_type = Variable;
 
   Term() : coeff{Coeff{0}} {}
 
-  Term(const variable_map& vars, const Coeff& coeff) 
-  : coeff(coeff), vars(coeff == Coeff{0} ? variable_map{} : vars) {}
+  Term(const variable_map &vars, const Coeff &coeff)
+      : coeff(coeff), vars(coeff == Coeff{0} ? variable_map{} : vars) {}
 
-  explicit Term(std::initializer_list<std::pair<Variable, degree_type>> var,
+  explicit Term(std::initializer_list<std::pair<Variable, Degree>> var,
                 const Coeff &coef = Coeff{1})
       : coeff{coef} {
     for (const auto &pair : var) {
-      if (pair.second != 0) {
+      if (pair.second.value != 0) {
         vars.insert(pair);
       }
     }
@@ -42,21 +43,20 @@ public:
   const Coeff &coefficient() const { return coeff; }
   Coeff &coefficient() { return coeff; }
 
-
-
   const variable_map &variables() const { return vars; }
 
   bool is_zero() const { return coeff == Coeff{0}; }
 
-  degree_type total_degree() const {
-    return std::accumulate(
-        vars.begin(), vars.end(), degree_type{0},
-        [](degree_type sum, const auto &pair) { return sum + pair.second; });
+  Degree total_degree() const {
+    return std::accumulate(vars.begin(), vars.end(), Degree{0},
+                           [](const Degree &sum, const auto &pair) {
+                             return Degree{sum.value + pair.second.value};
+                           });
   }
 
-  degree_type degree_of(const Variable &var) const {
+  Degree degree_of(const Variable &var) const {
     auto it = vars.find(var);
-    return (it != vars.end()) ? it->second : 0;
+    return (it != vars.end()) ? it->second : Degree{0};
   }
 
   friend bool operator==(const Term &lhs, const Term &rhs) {
@@ -89,7 +89,7 @@ public:
   Term operator*(const Coeff &c) const { return Term(coeff * c, vars); }
 
   bool is_divisible_by(const Term &divisor) const {
-    for (const auto &[var, deg_div]: divisor.vars) {
+    for (const auto &[var, deg_div] : divisor.vars) {
       if (degree_of(var) < deg_div) {
         return false;
       }
@@ -103,8 +103,8 @@ public:
       if (!first)
         os << "*";
       os << var;
-      if (deg != 1)
-        os << "^" << deg;
+      if (deg.value != 1)
+        os << "^" << deg.value;
       first = false;
     }
   }
@@ -125,8 +125,8 @@ public:
         os << "*";
       }
       os << var;
-      if (deg != 1) {
-        os << "^" << deg;
+      if (deg.value != 1) {
+        os << "^" << deg.value;
       }
       first = false;
     }
@@ -137,9 +137,9 @@ public:
   static Term monomial_gcd(const Term &a, const Term &b) {
     variable_map result;
     for (const auto &[var, deg_a] : a.vars) {
-      degree_type deg_b = b.degree_of(var);
-      degree_type min_deg = std::min(deg_a, deg_b);
-      if (min_deg > 0) {
+      Degree deg_b = b.degree_of(var);
+      Degree min_deg = std::min(deg_a, deg_b);
+      if (min_deg.value > 0) {
         result.emplace(var, min_deg);
       }
     }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "groebner/orders/monomial_order.hpp"
+#include "strong_typedef.hpp"
 #include "term.hpp"
 #include <cassert>
 #include <initializer_list>
@@ -7,16 +9,14 @@
 
 namespace groebner::core {
 
-// Temporary comparator. TODO: replace with DegRevLexOrder
-template <typename TermType> struct LexTermOrder {
-  bool operator()(const TermType &a, const TermType &b) const { return a < b; }
-};
+template <typename Coeff = coefficient::Rational<>,
+          typename Order = orders::DegRevLexOrder>
 
-template <typename Coeff = coefficient::Rational<>> class SparsePolynomial {
+class SparsePolynomial {
 public:
+  using Degree = groebner::core::Degree;
   using term_type = Term<Coeff>;
-  using term_set = std::set<term_type, LexTermOrder<term_type>>;
-  // later: using term_set = std::set<term_type, orders::DegRevLexOrder>;
+  using term_set = std::set<term_type, Order>;
 
   SparsePolynomial() = default;
 
@@ -41,8 +41,6 @@ public:
     return *this;
   }
 
-
-
   SparsePolynomial &operator-=(const SparsePolynomial &other) {
     for (const auto &t : other.terms_) {
       term_type negated = t;
@@ -52,8 +50,21 @@ public:
     return *this;
   }
 
-   friend SparsePolynomial operator-(SparsePolynomial lhs, const SparsePolynomial& rhs) {
+  friend SparsePolynomial operator+(SparsePolynomial lhs,
+                                    const SparsePolynomial &rhs) {
+    lhs += rhs;
+    return lhs;
+  }
+
+  friend SparsePolynomial operator-(SparsePolynomial lhs,
+                                    const SparsePolynomial &rhs) {
     lhs -= rhs;
+    return lhs;
+  }
+
+  friend SparsePolynomial operator*(SparsePolynomial lhs,
+                                    const SparsePolynomial &rhs) {
+    lhs *= rhs;
     return lhs;
   }
 
@@ -98,19 +109,20 @@ public:
 
     typename term_type::variable_map mult_vars;
     for (const auto &[var, deg_f] : lt_f.variables()) {
-    degree_type deg_g = lt_g.degree_of(var);
-    if (deg_f > deg_g) {
-      mult_vars.emplace(var, deg_f - deg_g);
+      Degree deg_g = lt_g.degree_of(var);
+      if (deg_f > deg_g) {
+        auto diff = deg_f.value - deg_g.value;
+        mult_vars.emplace(var, Degree{diff});
+      }
     }
+    term_type multiplier(mult_vars, lt_f.coefficient() / lt_g.coefficient());
+    for (const auto &term : divisor.terms_) {
+      term_type to_sub = multiplier * term;
+      to_sub.coefficient() = -to_sub.coefficient();
+      add_term(to_sub);
+    }
+    return true;
   }
-  term_type multiplier(mult_vars, lt_f.coefficient() / lt_g.coefficient());
-  for (const auto &term : divisor.terms_) {
-    term_type to_sub = multiplier * term;
-    to_sub.coefficient() = -to_sub.coefficient();
-    add_term(to_sub);
-  }
-  return true;
-}
 
   void reduce_by(const SparsePolynomial &divisor) {
     while (reduce_by_once(divisor)) {
@@ -147,7 +159,6 @@ public:
     return os;
   }
 
-
   void add_term(const term_type &t) {
     if (t.is_zero())
       return;
@@ -176,7 +187,6 @@ private:
       }
     }
   }
-  
 
   void normalize() {
     if (is_zero()) {
@@ -197,18 +207,4 @@ private:
     terms_ = std::move(new_terms);
   }
 };
-
-template <typename Coeff>
-SparsePolynomial<Coeff> operator+(SparsePolynomial<Coeff> lhs,
-                                  const SparsePolynomial<Coeff> &rhs) {
-  lhs += rhs;
-  return lhs;
-}
-
-template <typename Coeff>
-SparsePolynomial<Coeff> operator*(SparsePolynomial<Coeff> lhs,
-                                  const SparsePolynomial<Coeff> &rhs) {
-  lhs *= rhs;
-  return lhs;
-}
 }

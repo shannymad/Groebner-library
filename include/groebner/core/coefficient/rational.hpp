@@ -134,4 +134,4 @@ private:
   T denominator_;
 };
 
-}
+} // namespace groebner::core::coefficient
