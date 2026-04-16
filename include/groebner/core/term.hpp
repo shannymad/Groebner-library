@@ -1,7 +1,9 @@
 #pragma once
 #include "coefficient/rational.hpp"
+#include "print_helper.hpp"
 #include "strong_typedef.hpp"
 #include "variable.hpp"
+#include "print_helper.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
@@ -9,9 +11,9 @@
 #include <iostream>
 #include <map>
 #include <numeric>
+#include <type_traits>
 
 namespace groebner::core {
-
 struct DegreeTag;
 using Degree = groebner::core::StrongTypedef<DegreeTag, std::uint32_t>;
 
@@ -20,10 +22,12 @@ using Degree = groebner::core::StrongTypedef<DegreeTag, std::uint32_t>;
 // using variable_power = std::pair<Variable, Degree>;
 // using variable_vector = std::vector<variable_power>;
 
-template <typename Coeff = coefficient::Rational<>> class Term {
+template<typename Coeff = coefficient::Rational<>> 
+class Term {
 public:
   using variable_map = std::map<Variable, Degree>;
   using variable_type = Variable;
+  using Helper = detail::PrintHelper<Coeff>;
 
   Term() : coeff{Coeff{0}} {}
 
@@ -67,7 +71,6 @@ public:
     return !(lhs == rhs);
   }
 
-  // Temporary lex order on variables (TODO: external comparator)
   friend bool operator<(const Term &lhs, const Term &rhs) {
     return lhs.vars < rhs.vars;
   }
@@ -97,6 +100,7 @@ public:
     return true;
   }
 
+
   void print_monomial(std::ostream &os) const {
     bool first = true;
     for (const auto &[var, deg] : vars) {
@@ -114,22 +118,14 @@ public:
       return os << "0";
     }
 
-    bool first = true;
-    if (t.coeff != Coeff{1} || t.vars.empty()) {
-      os << t.coeff;
-      first = false;
-    }
+    using Helper = detail::PrintHelper<Coeff>;
 
-    for (const auto &[var, deg] : t.vars) {
-      if (!first) {
-        os << "*";
-      }
-      os << var;
-      if (deg.value != 1) {
-        os << "^" << deg.value;
-      }
-      first = false;
+    if (Helper::should_print_coefficient(t.coeff, !t.vars.empty())) {
+      os << t.coeff;
+    } else if (t.coeff < Coeff{0}) {
+      os << "-";
     }
+    t.print_monomial(os);
 
     return os;
   }
@@ -166,5 +162,5 @@ private:
 
   Term(Coeff c, variable_map v) : coeff(std::move(c)), vars(std::move(v)) {}
 };
-
+  
 }

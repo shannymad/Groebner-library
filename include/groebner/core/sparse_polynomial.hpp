@@ -9,7 +9,7 @@
 
 namespace groebner::core {
 
-template <typename Coeff = coefficient::Rational<>,
+template<typename Coeff = coefficient::Rational<>,
           typename Order = orders::DegRevLexOrder>
 
 class SparsePolynomial {
@@ -134,27 +134,13 @@ public:
       return os << "0";
     }
     bool first = true;
-    for (const auto &term : p.terms()) {
-      if (first) {
-        os << term;
-        first = false;
-      } else {
-        if (term.coefficient() < Coeff{0}) {
-          os << " - ";
-          auto abs_coef = -term.coefficient();
-          if (term.variables().empty()) {
-            os << abs_coef;
-          } else {
-            if (abs_coef != Coeff{1}) {
-              os << abs_coef << "*";
-            }
-            term.print_monomial(os);
-          }
-        } else {
-          os << " + ";
-          os << term;
-        }
+    for (const auto &term : p.terms_) {
+      using Helper = detail::PrintHelper<Coeff>;
+      if (!first && Helper::is_plus_needed(term.coefficient(), false)) {
+        os << "+";
       }
+      os << term;
+      first = false;
     }
     return os;
   }

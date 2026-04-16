@@ -3,9 +3,6 @@
 #include <cassert>
 #include <iostream>
 
-using variable = groebner::core::Variable;
-using VariableIndex = groebner::core::VariableIndex;
-
 void test_constructors() {
   variable x('x');
   assert(x.let() == 'x');
@@ -37,6 +34,10 @@ void test_output() {
 }
 
 int main() {
+
+
+using variable = groebner::core::Variable;
+using VariableIndex = groebner::core::VariableIndex;
   test_constructors();
   test_comparison();
   test_output();

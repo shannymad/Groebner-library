@@ -8,7 +8,7 @@
 
 namespace groebner::orders {
 
-template <typename Term>
+template<typename Term>
 
 groebner::core::Degree
 degree_of_variable(const Term &t, const typename Term::variable_type var) {

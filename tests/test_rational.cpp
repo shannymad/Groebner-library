@@ -2,7 +2,6 @@
 #include <cassert>
 #include <iostream>
 
-using rational = groebner::core::coefficient::Rational<>;
 
 void test_constructors() {
   rational r1;
@@ -42,6 +41,8 @@ void test_normalize() {
 }
 
 int main() {
+
+using rational = groebner::core::coefficient::Rational<>;
   test_constructors();
   test_arithmetic();
   test_comparison();

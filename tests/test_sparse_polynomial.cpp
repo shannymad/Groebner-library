@@ -4,13 +4,15 @@
 #include <cassert>
 #include <iostream>
 
+
+int main() {
+
 using term = groebner::core::Term<>;
 using rational = groebner::core::coefficient::Rational<>;
 using variable = groebner::core::Variable;
 using Degree = groebner::core::Degree;
 using Poly = groebner::core::SparsePolynomial<>;
 
-int main() {
   term t1({{variable('x'), Degree{2}}}, rational(3, 2)); // (3/2)*x^2
   term t2({{variable('y'), Degree{1}}}, rational(5));    // 5*y
   term t3({{variable('x'), Degree{1}}, {variable('y'), Degree{1}}},

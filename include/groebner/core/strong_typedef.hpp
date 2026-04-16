@@ -3,7 +3,8 @@
 
 namespace groebner::core {
 
-template <typename Tag, typename T> struct StrongTypedef {
+template<typename Tag, typename T> 
+struct StrongTypedef {
   T value;
   explicit constexpr StrongTypedef(T v) : value(v) {}
 

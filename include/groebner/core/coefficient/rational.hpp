@@ -7,7 +7,8 @@
 
 namespace groebner::core::coefficient {
 
-template <typename T = std::int64_t> class Rational {
+template <typename T = std::int64_t> 
+class Rational {
 public:
   static_assert(std::is_integral_v<T>, "T must be an integral type");
   static_assert(std::is_signed_v<T>, "T must be a signed type");
@@ -134,4 +135,4 @@ private:
   T denominator_;
 };
 
-} // namespace groebner::core::coefficient
+}

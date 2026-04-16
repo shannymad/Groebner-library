@@ -3,12 +3,13 @@
 #include <cassert>
 #include <iostream>
 
+int main() {
+
 using term = groebner::core::Term<>;
 using rational = groebner::core::coefficient::Rational<>;
 using variable = groebner::core::Variable;
 using Degree = groebner::core::Degree;
 
-int main() {
   term t1;
   assert(t1.is_zero());
 

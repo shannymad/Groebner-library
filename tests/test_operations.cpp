@@ -5,12 +5,13 @@
 #include <cassert>
 #include <iostream>
 
+
+int main() {
+
 using term = groebner::core::Term<>;
 using rational = groebner::core::coefficient::Rational<>;
 using variable = groebner::core::Variable;
 using Degree = groebner::core::Degree;
-
-int main() {
   term f1({{variable('x'), Degree{2}}}, rational(1)); // x^2
   term f2({{variable('y'), Degree{1}}}, rational(1)); // y
   groebner::core::SparsePolynomial<> f({f1, f2});     // x^2 + y
