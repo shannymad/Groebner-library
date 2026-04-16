@@ -1,0 +1,15 @@
+# Build directories
+cmake-build-debug/
+cmake-build-release/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Compiled binaries
+*.o
+*.out
+main
